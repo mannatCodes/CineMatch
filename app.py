@@ -2,6 +2,7 @@ import json
 import os
 from dotenv import load_dotenv
 import time
+import numpy as np
 import pandas as pd
 import urllib.request
 import urllib.parse
@@ -69,7 +70,9 @@ def rate_limit(view):
     wrapped.__name__ = view.__name__
     return wrapped
 
-# creating a similarity matrix using count vectorizer and cosine similarity
+# Build the sparse feature matrix once.  Do not build an all-movies cosine
+# matrix: at 5,000 movies that dense float64 matrix needs about 191 MiB per
+# Gunicorn worker, which exceeds small-instance memory limits very quickly.
 @lru_cache(maxsize=1)
 def create_similarity():
     """Load the local recommendation model once, rather than on every search."""
@@ -77,7 +80,7 @@ def create_similarity():
     data['movie_title'] = data['movie_title'].fillna('').astype(str).str.strip().str.casefold()
     cv = CountVectorizer()
     count_matrix = cv.fit_transform(data['comb'].fillna(''))
-    return data, cosine_similarity(count_matrix)
+    return data, count_matrix
 
 def rcmd(m):
     m = str(m or '').strip().casefold()
@@ -85,25 +88,21 @@ def rcmd(m):
     if not m:
         return 'Please enter a movie title.'
 
-    data, similarity = create_similarity()
+    data, count_matrix = create_similarity()
 
     if m not in set(data['movie_title']):
         return 'Sorry! The movie you requested is not in our database. Please check the spelling or try with some other movies'
 
-    i = data.loc[data['movie_title'] == m].index[0]
-
-    lst = list(enumerate(similarity[i]))
-    lst = sorted(lst, key=lambda x: x[1], reverse=True)
-
-    lst = lst[1:11]
-
-    recommendations = []
-
-    for item in lst:
-        movie_index = item[0]
-        recommendations.append(data['movie_title'][movie_index])
-
-    return recommendations
+    # This creates a 1 x movie_count score vector instead of an N x N matrix.
+    # ``flatnonzero`` returns a positional row index even if the CSV index is
+    # ever changed from its current RangeIndex.
+    movie_index = np.flatnonzero(data['movie_title'].to_numpy() == m)[0]
+    scores = cosine_similarity(count_matrix[movie_index], count_matrix).ravel()
+    # A stable sort keeps tied scores in catalogue order, matching the former
+    # Python ``sorted`` ranking behavior.
+    ranked_indices = np.argsort(-scores, kind="stable")
+    recommendation_indices = [index for index in ranked_indices if index != movie_index][:10]
+    return data['movie_title'].iloc[recommendation_indices].tolist()
 
 
 @lru_cache(maxsize=512)
