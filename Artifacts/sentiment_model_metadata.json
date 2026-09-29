@@ -1,0 +1,7 @@
+{
+  "artifact_format": 1,
+  "model": "MultinomialNB",
+  "vectorizer": "TfidfVectorizer",
+  "scikit_learn_version": "1.9.1",
+  "training_rows": 6918
+}

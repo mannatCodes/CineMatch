@@ -1,0 +1,15 @@
+.env
+.env.*
+!.env.example
+.git
+.dvc
+__pycache__
+*.py[cod]
+.pytest_cache
+.coverage
+htmlcov
+NoteBook_Experiments
+tests
+.vscode
+.idea
+README.md

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>MovieMatch | Find your next favorite movie</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="Discover your next favorite movie with content-based recommendations powered by cast, genre, director, and plot metadata.">
+  <link href="https://fonts.googleapis.com/css?family=IBM+Plex+Sans&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css', v='7') }}">
+  <script type="text/javascript">
+    var films = {{suggestions|tojson}};
+  </script>
+</head>
+
+<body id="content" class="home-page">
+  <main class="app-shell">
+    <header class="site-header">
+      <a class="brand" href="{{ url_for('home') }}" aria-label="MovieMatch home">
+        <span class="brand-mark"><i class="fa fa-film" aria-hidden="true"></i></span>
+        <span>MovieMatch</span>
+      </a>
+      <span class="header-tag">Movie discovery</span>
+    </header>
+
+    <section class="search-hero" aria-labelledby="page-title">
+      <p class="eyebrow">FIND YOUR NEXT FAVORITE</p>
+      <h1 id="page-title">Great movies start<br>with one title.</h1>
+      <p class="hero-copy">Search a movie you love and get recommendations tailored to its story, cast, and genre.</p>
+
+      <div class="search-card">
+        <label class="sr-only" for="autoComplete">Movie title</label>
+        <div class="movie-autocomplete">
+          <i class="fa fa-search search-icon" aria-hidden="true"></i>
+          <input type="text" name="movie" class="movie form-control" id="autoComplete" autocomplete="off" placeholder="Search for a movie, e.g. Inception" required />
+          <ul id="movieSuggestions" class="movie-suggestions" hidden aria-label="Matching movie titles"></ul>
+        </div>
+        <button class="btn movie-button" type="button" disabled>
+          Find recommendations <i class="fa fa-arrow-right" aria-hidden="true"></i>
+        </button>
+        <p class="search-help"><i class="fa fa-keyboard-o" aria-hidden="true"></i> Type a title to search the local catalogue or TMDB.</p>
+      </div>
+    </section>
+
+    <div class="fail" role="alert">
+      <h3>Sorry! The requested movie is not in our database.</h3>
+    </div>
+
+    <section class="results" aria-live="polite">
+      <h2 id="name" class="text-uppercase"></h2>
+    </section>
+  </main>
+  <script type="text/javascript" src="{{url_for('static', filename='autocomplete.js', v='3')}}"></script>
+  <script type="text/javascript" src="{{url_for('static', filename='recommend.js', v='14')}}"></script>
+</body>
+</html>
